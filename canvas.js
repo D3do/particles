@@ -4,14 +4,15 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  let x, y, radius;
+  let x, y, radius, distanceBetweenParticles;
   let particles = [];
   let mouse = {
     x: undefined,
     y: undefined
   }
+  let lineOpacity = 0;
   const numberOfParticles = 20;
-  const minRadius = 2;
+  const minRadius = 4;
   const maxRadius = 8;
   const color = '#000';
   const borderColor = '#b87692';
@@ -42,28 +43,34 @@
       for (let i = 0; i < particles.length; i++) {
         if (this === particles[i]) continue;
 
-        if (distance(this.x, this.y, particles[i].x, particles[i].y) - this.radius * 2 - lineWidth <= 0) {
+        distanceBetweenParticles = distance(this.x, this.y, particles[i].x, particles[i].y) - this.radius - particles[i].radius - this.lineWidth;
+
+        if (distanceBetweenParticles <= 0) {
           resolveCollision(this, particles[i]);
+        }
+
+        if (distanceBetweenParticles <= 100) {
+          this.drawLine();
         }
       }
 
       if(this.x - this.radius <= 0
-         || this.x + this.radius >= canvas.width) {
+        || this.x + this.radius >= canvas.width) {
         this.velocity.x = -this.velocity.x;
       }
 
-      if(this.y - this.radius <= 0
-         || this.y + this.radius >= canvas.height) {
+      if (this.y - this.radius <= 0
+        || this.y + this.radius >= canvas.height) {
         this.velocity.y = -this.velocity.y;
       }
 
       this.x += this.velocity.x;
       this.y += this.velocity.y;
 
-      this.draw();
+      this.drawParticle();
     }
 
-    draw() {
+    drawParticle() {
       context.beginPath();
       context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
       context.strokeStyle = this.borderColor;
@@ -72,6 +79,10 @@
       context.stroke();
       context.fill();
       context.closePath();
+    }
+
+    drawLine() {
+      console.log('drawLine');
     }
   }
 
