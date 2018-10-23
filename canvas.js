@@ -11,12 +11,14 @@
     y: undefined
   }
   let lineOpacity = 0;
-  const numberOfParticles = 20;
+  const numberOfParticles = 40;
   const minRadius = 4;
   const maxRadius = 8;
   const color = '#000';
   const borderColor = '#b87692';
-  const lineWidth = 4;
+  const borderWidth = 4;
+  const lineWidth = 2;
+  const distanceToDrawLine = 100;
 
   window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
@@ -25,12 +27,13 @@
   });
 
   class Particle {
-    constructor(x, y, radius, color, borderColor, lineWidth) {
+    constructor(x, y, radius, color, borderColor, borderWidth, lineWidth) {
       this.x = x;
       this.y = y;
       this.radius = radius;
       this.color = color;
       this.borderColor = borderColor;
+      this.borderWidth = borderWidth;
       this.lineWidth = lineWidth;
       this.velocity = {
         x: Math.random() - 0.5,
@@ -43,14 +46,14 @@
       for (let i = 0; i < particles.length; i++) {
         if (this === particles[i]) continue;
 
-        distanceBetweenParticles = distance(this.x, this.y, particles[i].x, particles[i].y) - this.radius - particles[i].radius - this.lineWidth;
+        distanceBetweenParticles = distance(this.x, this.y, particles[i].x, particles[i].y) - this.radius - particles[i].radius - this.borderWidth;
 
         if (distanceBetweenParticles <= 0) {
           resolveCollision(this, particles[i]);
         }
 
-        if (distanceBetweenParticles <= 100) {
-          this.drawLine();
+        if (distanceBetweenParticles <= distanceToDrawLine) {
+          this.drawLine(this.x, this.y, particles[i].x, particles[i].y);
         }
       }
 
@@ -73,16 +76,24 @@
     drawParticle() {
       context.beginPath();
       context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      context.globalCompositeOperation = 'source-over';
       context.strokeStyle = this.borderColor;
       context.fillStyle = this.color;
-      context.lineWidth = this.lineWidth;
+      context.lineWidth = this.borderWidth;
       context.stroke();
       context.fill();
       context.closePath();
     }
 
-    drawLine() {
-      console.log('drawLine');
+    drawLine(x1, y1, x2, y2) {
+      let alpha = (distanceToDrawLine - distanceBetweenParticles) / distanceToDrawLine;
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.globalCompositeOperation = 'destination-over';
+      context.lineWidth = this.lineWidth;
+      context.strokeStyle = `rgba(156, 98, 123, ${alpha})`;
+      context.stroke();
     }
   }
 
@@ -95,15 +106,15 @@
 
       if (i !== 0) {
         for (let j = 0; j < particles.length; j++) {
-          if (distance(x, y, particles[j].x, particles[j].y) - radius * 2 - lineWidth <= 0) {
+          if (distance(x, y, particles[j].x, particles[j].y) - radius * 2 - borderWidth <= 0) {
             x = randomIntFromRange(radius, canvas.width - radius);
             y = randomIntFromRange(radius, canvas.height - radius);
             j = -1;
           }
         }
       }
-      
-      particles.push(new Particle(x, y, radius, color, borderColor, lineWidth))
+
+      particles.push(new Particle(x, y, radius, color, borderColor, borderWidth,lineWidth))
     }
   }
 
